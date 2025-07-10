@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7Z3VGYEWF5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-7Z3VGYEWF5');
+    </script>
+
+    <title>Chess Annotator</title>
+
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chess Annotator: Analyze. Annotate. Master.">
+    <meta name="author" content="Arpit Narechania">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <link href="libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/chessboard.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <div class="navbar-brand d-flex align-items-center">
+                <img src="images/logo.png" alt="Chess Annotator Logo" class="me-3" style="height: 40px; width: auto;">
+                <div>
+                    <div class="navbar-title">Chess Annotator</div>
+                    <div class="navbar-subtitle">Analyze. Annotate. Master.</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <a href="https://github.com/arpitnarechania/chess-annotator" target="_blank" class="nav-link text-light" title="GitHub Repository">
+                    <i class="bi bi-github" style="font-size: 1.8rem;"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-secondary alert-dismissible fade show mt-2 mb-0 w-100" role="alert">
+                    <strong>Inspiration:</strong> I built this utility tool so humans can finally decode <a href="https://en.wikipedia.org/wiki/Hikaru_Nakamura" target="_blank" class="text-primary text-decoration-underline">Hikaru Nakamura's</a> legendary <a href="https://www.youtube.com/watch?v=Y5K2k-JIQow" target="_blank" class="text-primary text-decoration-underline">arrow work on a chess board</a>. May your annotations be as legendary as his.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center mb-3">
+                            <strong class="me-2">Setup Position</strong>
+                        </div>
+                        <ul class="nav nav-tabs card-header-tabs" id="controlTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="setup-tab" data-bs-toggle="tab"
+                                    data-bs-target="#setup-panel" type="button" role="tab">
+                                    Manual
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab"
+                                    data-bs-target="#upload-panel" type="button" role="tab">
+                                    PGN
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="fen-tab" data-bs-toggle="tab" data-bs-target="#fen-panel"
+                                    type="button" role="tab">
+                                    FEN
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="sample-tab" data-bs-toggle="tab"
+                                    data-bs-target="#sample-panel" type="button" role="tab">
+                                    Sample Games
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="controlTabContent">
+
+                            <!-- Setup Panel -->
+                            <div class="tab-pane fade show active" id="setup-panel" role="tabpanel">
+
+                                <!-- Setup Board -->
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="setup-board-container">
+                                            <div class="setup-board"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Turn Selection -->
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="text-center">
+                                            <span class="form-label">Choose Turn:</span>&nbsp;
+                                            <input type="radio" name="setupTurn" id="setupTurnWhite" value="white"
+                                                checked>
+                                            <label for="setupTurnWhite">White</label>
+                                            &nbsp;
+                                            <input type="radio" name="setupTurn" id="setupTurnBlack" value="black">
+                                            <label class="form-check-label" for="setupTurnBlack">Black</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                                id="startPositionBtn">
+                                                <i class="bi bi-arrow-clockwise"></i> Start
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                                id="clearBoardBtn">
+                                                <i class="bi bi-trash"></i> Clear
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                                id="flipBoardBtn">
+                                                <i class="bi bi-arrow-repeat"></i> Flip
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-primary me-1 ms-1" id="doneSetupBtn">
+                                                <i class="bi bi-rocket"></i> Load
+                                            </button>    
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload PGN Panel -->
+                            <div class="tab-pane fade" id="upload-panel" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <label for="pgnFileInput" class="form-label">Upload PGN File:</label>
+                                        <input type="file" class="form-control" id="pgnFileInput" accept=".pgn">
+                                    </div>
+                                </div>
+
+                                <!-- Game Selection for Uploaded PGN -->
+                                <div class="row mb-3" id="uploadedGameSelectionRow" style="display: none;">
+                                    <div class="col-12">
+                                        <label for="uploadedGameSelect" class="form-label">Select Game:</label>
+                                        <select class="form-select" id="uploadedGameSelect">
+                                            <option value="">Choose a game...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Game Navigation for Uploaded PGN -->
+                                <div class="row mb-3" id="uploadedGameNavigationRow" style="display: none;">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                    id="uploadedFirstMoveBtn" title="First Move">
+                                                    <i class="bi bi-skip-backward"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                    id="uploadedPrevMoveBtn" title="Previous Move">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                    id="uploadedNextMoveBtn" title="Next Move">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                    id="uploadedLastMoveBtn" title="Last Move">
+                                                    <i class="bi bi-skip-forward"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-center">
+                                                <span>Move: </span>
+                                                <input type="number" class="form-control d-inline-block"
+                                                    id="uploadedMoveCounter" min="0"
+                                                    style="width: 60px; text-align: center;" value="0">
+                                                <span>/0</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FEN Position Panel -->
+                            <div class="tab-pane fade" id="fen-panel" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <label for="fenInput" class="form-label">FEN Position:</label>
+                                        <input type="text" class="form-control" id="fenInput"
+                                            placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-primary" id="loadFenBtn">
+                                                <i class="bi bi-rocket"></i> Load
+                                            </button>    
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sample Games Panel -->
+                            <div class="tab-pane fade" id="sample-panel" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <label for="sampleGameSelect" class="form-label">Choose a sample game:</label>
+                                        <select class="form-select" id="sampleGameSelect">
+                                            <option value="">Loading sample games...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Game Navigation -->
+                                <div class="row mb-3" id="gameNavigationRow" style="display: none;">
+                                    <div class="col-12">
+                                        <label class="form-label">Go to a specific move:</label>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                    id="firstMoveBtn" title="First Move">
+                                                    <i class="bi bi-skip-backward"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" id="prevMoveBtn"
+                                                    title="Previous Move">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" id="nextMoveBtn"
+                                                    title="Next Move">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" id="lastMoveBtn"
+                                                    title="Last Move">
+                                                    <i class="bi bi-skip-forward"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-center">
+                                                <span>Move: </span>
+                                                <input type="number" class="form-control d-inline-block"
+                                                    id="moveCounter" min="0" style="width: 60px; text-align: center;"
+                                                    value="0">
+                                                <span>/0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9 mb-3">
+                <div class="row">
+                    <!-- Chess Board -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <strong>Analyze Position</strong>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-3">Line:</h6>
+                                    <div class="btn-group me-2" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationFirstBtn" title="First Position" disabled>
+                                            <i class="bi bi-skip-backward"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationPrevBtn" title="Previous Position" disabled>
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationNextBtn" title="Next Position" disabled>
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationLastBtn" title="Last Position" disabled>
+                                            <i class="bi bi-skip-forward"></i>
+                                        </button>
+                                    </div>
+                                    <div class="btn-group me-2 float-right" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="saveLineBtn" title="Save and Reset Current Line">
+                                            <i class="bi bi-save"></i> Save and Reset
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="clearAnnotationsBtn" title="Reset All Annotations">
+                                            <i class="bi bi-eraser"></i> Reset
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-2">Moves:</h6>
+                                    <div class="me-2">
+                                        <span class="badge bg-secondary" id="turnIndicator">White to move</span>
+                                    </div>
+                                    <div class="input-group input-group-xs me-2" id="manualMoveInput">
+                                        <input type="text" style="width: 75px;" class="form-control" id="moveInputField" placeholder="e.g., e4">
+                                        <button class="btn btn-outline-secondary btn-xs" type="button" id="goMoveBtn">Type Move</button>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary btn-xs me-2" id="voiceAnnotateBtn" title="Speak to Annotate">
+                                        <i class="bi bi-mic"></i> Speak Move
+                                    </button>
+                                    <span id="voiceAnnotateStatus" style="font-size:0.9em;"></span>
+                                </div>
+                                <div class="p-sm">
+                                    <div id="annotationMoveList" class="annotation-move-list" style="display:none;"></div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="text-center mb-2">
+                                                <span class="fw-bold">Annotation Board - Draw Arrows</span>
+                                            </div>
+                                            <!-- Drawing Workspace Container -->
+                                            <div class="drawing-workspace">
+                                                <div class="drawing-toolbar" id="drawingToolbar">
+                                                    <!-- Arrow Properties -->
+                                                    <div class="toolbar-group" id="arrowProperties">
+                                                        <div class="toolbar-group-title">Arrow</div>
+                                                        <div class="toolbar-controls">
+                                                            <div class="toolbar-control">
+                                                                <!-- <label class="toolbar-control-label">Color</label> -->
+                                                                <input type="color" class="toolbar-color-picker" id="arrowColor" value="#ffeb3b" title="Arrow Color">
+                                                            </div>
+                                                            <div class="toolbar-control">
+                                                                <label class="toolbar-control-label">Size</label>
+                                                                <input type="number" class="toolbar-number-input" id="arrowSize" value="8" min="1" max="20" title="Arrow Size (px)">
+                                                            </div>
+                                                            <div class="toolbar-control">
+                                                                <label class="toolbar-control-label">Opac</label>
+                                                                <input type="range" class="toolbar-range-input" id="arrowOpacity" value="100" min="10" max="100" title="Arrow Opacity">
+                                                                <span class="toolbar-range-value" id="arrowOpacityValue">100%</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Circle Properties -->
+                                                    <div class="toolbar-group" id="circleProperties">
+                                                        <div class="toolbar-group-title">Circle</div>
+                                                        <div class="toolbar-controls">
+                                                            <div class="toolbar-control">
+                                                                <!-- <label class="toolbar-control-label">Color</label> -->
+                                                                <input type="color" class="toolbar-color-picker" id="circleColor" value="#ffeb3b" title="Circle Color">
+                                                            </div>
+                                                            <div class="toolbar-control" style="display: none;">
+                                                                <label class="toolbar-control-label">Width</label>
+                                                                <input type="number" class="toolbar-number-input" id="circleWidth" value="3" min="1" max="10" title="Circle Width (px)">
+                                                            </div>
+                                                            <div class="toolbar-control">
+                                                                <label class="toolbar-control-label">Opac</label>
+                                                                <input type="range" class="toolbar-range-input" id="circleOpacity" value="100" min="10" max="100" title="Circle Opacity">
+                                                                <span class="toolbar-range-value" id="circleOpacityValue">100%</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Annotation Board -->
+                                                <div class="annotation-board-container">
+                                                    <canvas class="annotation-board-primary-canvas"></canvas>
+                                                    <canvas class="annotation-board-drawing-canvas"></canvas>
+                                                    <div class="annotation-board"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="moveBoardColumn">
+                                            <div class="d-flex flex-column h-100">
+                                                <div class="text-center mb-2">
+                                                    <span class="fw-bold">Move Board - Play Moves</span>
+                                                </div>
+                                                <!-- Move Board -->
+                                                <div class="move-board-container mb-3">
+                                                    <div class="move-board mb-3"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Saved Mini-Boards Section -->
+                                <hr>
+                                <div class="container-fluid">
+                                    <div class="row" id="savedLinesContainer">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Future Work -->
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-secondary alert-dismissible fade show mb-0 w-100" role="alert">
+                    <strong>Coming soon:</strong> More annotation shapes and styles, branched move lines, etc. We are in active development; email <a href="https://narechania.com" target="_blank" class="text-primary text-decoration-underline">Arpit Narechania</a> at <a href="mailto: arpitnarechania@gmail.com">arpitnarechania [at] gmail [dot] com</a> with anything.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Promotion Modal -->
+    <div class="modal fade" id="promotionModal" tabindex="-1" aria-labelledby="promotionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="promotionModalLabel">Promote to</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <button type="button" class="btn btn-outline-primary promotion-piece" data-piece="q">
+                                <img src="images/chesspieces/wikipedia/wQ.png" alt="Queen"
+                                    class="img-fluid promotion-piece-img">
+                            </button>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" class="btn btn-outline-primary promotion-piece" data-piece="r">
+                                <img src="images/chesspieces/wikipedia/wR.png" alt="Rook"
+                                    class="img-fluid promotion-piece-img">
+                            </button>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" class="btn btn-outline-primary promotion-piece" data-piece="b">
+                                <img src="images/chesspieces/wikipedia/wB.png" alt="Bishop"
+                                    class="img-fluid promotion-piece-img">
+                            </button>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" class="btn btn-outline-primary promotion-piece" data-piece="n">
+                                <img src="images/chesspieces/wikipedia/wN.png" alt="Knight"
+                                    class="img-fluid promotion-piece-img">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <footer class="footer mt-auto py-3 bg-dark text-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 mb-3 text-center">
+                    <img src="images/logo.png" alt="Chess Annotator Logo" class="me-2" style="height: 40px; width: auto;">
+                    <div>
+                        <h6 class="mb-0">Chess Annotator</h6>
+                        <small class="text-muted">Analyze. Annotate. Master.</small>
+                    </div>
+                    <div class="mt-2">
+                        <a href="https://github.com/arpitnarechania/chess-annotator" target="_blank" class="text-light" title="GitHub Repository">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3 text-center">
+                    <small class="text-muted">
+                        Created by <a class="text-info" href="https://narechania.com" target="_blank">Arpit Narechania</a><br>
+                        &copy; 2025 All rights reserved.
+                    </small>
+                </div>
+                <div class="col-md-3 mb-3 text-center">
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <a class="text-info" href="https://datavisards.com" target="_blank">DataVisards Lab</a>
+                        </small>
+                    </div>
+                    <div class="affiliation-image">
+                        <img src="images/hkust-logo.png" alt="The Hong Kong University of Science and Technology"
+                            class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Include scripts -->
+    <script src="libs/jquery-3.5.1.min.js"></script>
+    <script src="libs/popper/popper.min.js"></script>
+    <script src="libs/bootstrap/bootstrap.min.js"></script>
+    <script src="libs/chess.min.js"></script>
+    <script src="js/chessboard.js"></script>
+    <script src="js/chessboard-arrows.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
