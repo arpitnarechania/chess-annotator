@@ -53,16 +53,29 @@ var ChessboardArrows = function (container, primaryCanvas, drawCanvas, resFactor
     const mouseMoveHandler = function (event) { onMouseMove(event); };
     const contextMenuHandler = function (e) { e.preventDefault(); };
     
+    // Touch event callbacks for mobile support
+    const touchStartHandler = function (event) { onTouchStart(event); };
+    const touchEndHandler = function (event) { onTouchEnd(event); };
+    const touchMoveHandler = function (event) { onTouchMove(event); };
+    
     container.addEventListener("mousedown", mouseDownHandler);
     container.addEventListener("mouseup", mouseUpHandler);
     container.addEventListener("mousemove", mouseMoveHandler);
     container.addEventListener('contextmenu', contextMenuHandler, false);
+    
+    // Add touch event listeners for mobile support
+    container.addEventListener("touchstart", touchStartHandler, { passive: false });
+    container.addEventListener("touchend", touchEndHandler, { passive: false });
+    container.addEventListener("touchmove", touchMoveHandler, { passive: false });
     
     // Store event handlers for later removal
     this.mouseDownHandler = mouseDownHandler;
     this.mouseUpHandler = mouseUpHandler;
     this.mouseMoveHandler = mouseMoveHandler;
     this.contextMenuHandler = contextMenuHandler;
+    this.touchStartHandler = touchStartHandler;
+    this.touchEndHandler = touchEndHandler;
+    this.touchMoveHandler = touchMoveHandler;
 
     // initialise vars
     initialPoint = { x: null, y: null };
@@ -238,6 +251,99 @@ var ChessboardArrows = function (container, primaryCanvas, drawCanvas, resFactor
         drawArrowToCanvas(drawContext);
     }
 
+    // Touch event handlers for mobile support
+    function onTouchStart(event) {
+        event.preventDefault(); // Prevent scrolling
+        if (event.touches.length === 1) {
+            mouseDown = true;
+            initialPoint = finalPoint = getTouchPos(drawCanvas, event);
+            const circleRadius = primaryCanvas.width / (resFactor * NUM_SQUARES * 2) - 1;
+            drawCircle(drawContext, initialPoint.x, initialPoint.y, circleRadius);
+        }
+    }
+
+    function onTouchEnd(event) {
+        event.preventDefault(); // Prevent scrolling
+        if (event.touches.length === 0) {
+            mouseDown = false;
+            const fromSquare = getSquareFromCoordinates(initialPoint.x, initialPoint.y);
+            // if starting position == ending position, draw a circle
+            if (initialPoint.x == finalPoint.x && initialPoint.y == finalPoint.y) {
+                // TOGGLE LOGIC: check if a user-drawn circle exists for this square
+                const existingIndex = userDrawnElements.findIndex(e => e.type === ELEMENT_TYPES.CIRCLE && e.fromSquare === fromSquare);
+                if (existingIndex !== -1) {
+                    // Remove the existing circle
+                    userDrawnElements.splice(existingIndex, 1);
+                    // Redraw all user elements
+                    self.redrawUserElements();
+                } else {
+                    const circleRadius = primaryCanvas.width / (resFactor * NUM_SQUARES * 2) - 1;
+                    const element = createElementObject(
+                        ELEMENT_TYPES.CIRCLE,
+                        fromSquare,
+                        null,
+                        initialPoint.x,
+                        initialPoint.y,
+                        circleRadius
+                    );
+                    userDrawnElements.push(element);
+                    drawCircle(primaryContext, initialPoint.x, initialPoint.y, element.radius, element.circleSettings);
+                }
+            }
+            // otherwise draw an arrow
+            else {
+                const toSquare = getSquareFromCoordinates(finalPoint.x, finalPoint.y);
+                
+                // Validate the move before drawing
+                let isValidMove = true;
+                if (validateMove && typeof validateMove === 'function') {
+                    isValidMove = validateMove(fromSquare, toSquare);
+                }
+                
+                if (isValidMove) {
+                    const element = createElementObject(
+                        ELEMENT_TYPES.ARROW,
+                        fromSquare,
+                        toSquare,
+                        null,
+                        null,
+                        null
+                    );
+                    userDrawnElements.push(element);
+                    drawArrowToCanvas(primaryContext, element.arrowSettings);
+                    
+                    // Call the callback if provided
+                    if (onArrowDrawn && typeof onArrowDrawn === 'function') {
+                        onArrowDrawn(fromSquare, toSquare, element.arrowSettings);
+                    }
+                }
+                // If invalid move, don't draw anything and just clear the drawing canvas
+            }
+            drawContext.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        }
+    }
+
+    function onTouchMove(event) {
+        event.preventDefault(); // Prevent scrolling
+        if (event.touches.length === 1) {
+            finalPoint = getTouchPos(drawCanvas, event);
+
+            if (!mouseDown) return;
+            if (initialPoint.x == finalPoint.x && initialPoint.y == finalPoint.y) return;
+
+            drawContext.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            drawArrowToCanvas(drawContext);
+        }
+    }
+
+    function getTouchPos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: Q(evt.touches[0].clientX - rect.left),
+            y: Q(evt.touches[0].clientY - rect.top)
+        };
+    }
+
     function drawArrowToCanvas(context, settings = null) {
         const arrowStyle = settings || arrowSettings;
         
@@ -389,6 +495,11 @@ var ChessboardArrows = function (container, primaryCanvas, drawCanvas, resFactor
         container.removeEventListener("mouseup", this.mouseUpHandler);
         container.removeEventListener("mousemove", this.mouseMoveHandler);
         container.removeEventListener("contextmenu", this.contextMenuHandler);
+        
+        // Remove touch event listeners
+        container.removeEventListener("touchstart", this.touchStartHandler);
+        container.removeEventListener("touchend", this.touchEndHandler);
+        container.removeEventListener("touchmove", this.touchMoveHandler);
         
         // Clear canvases
         this.clearAll();

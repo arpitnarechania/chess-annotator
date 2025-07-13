@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const moveBoardDiv = document.querySelector('.move-board');
     moveBoardDiv.style.pointerEvents = 'auto';
     
+    // Prevent touch scrolling on chess boards for mobile
+    preventTouchScrolling();
+    
     // Initialize annotation navigation buttons
     updateAnnotationNavigationButtons();
     renderAnnotationMoveList();
@@ -53,6 +56,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize manual move input
     initializeManualMoveInput();
 });
+
+/**
+ * Prevent touch scrolling on chess boards for mobile devices
+ */
+function preventTouchScrolling() {
+    // Get all chess board elements
+    const chessBoards = [
+        '.annotation-board',
+        '.move-board', 
+        '.setup-board',
+        '.annotation-board-container',
+        '.move-board-container',
+        '.setup-board-container'
+    ];
+    
+    chessBoards.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            // Prevent default touch behavior
+            element.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            element.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            element.addEventListener('touchend', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        });
+    });
+}
 
 /**
  * Initialize the chess board and overlay
@@ -68,7 +104,7 @@ function initializeAnnotationBoard() {
     annotationBoardDiv.id = 'annotation-board';
 
     // Get the board's primary canvas
-    const offset = 5; // Not sure why but in spite of giving the canvases and the board same width and height, there is a need to subtract this offset to make everything align perfectly.
+    const offset = 0; // Not sure why but in spite of giving the canvases and the board same width and height, there is a need to subtract this offset to make everything align perfectly.
     const annotationBoardPrimaryCanvas = document.querySelector('.annotation-board-primary-canvas');
     annotationBoardPrimaryCanvas.id = 'annotation-board-primary-canvas';
     annotationBoardPrimaryCanvas.width = annotationBoardWidth - offset;
@@ -127,8 +163,6 @@ function initializeAnnotationBoard() {
     // Initialize overlay with current toolbar settings
     // These will be called after the toolbar is initialized
 }
-
-
 
 /**
  * Move Board Event Handlers
@@ -1404,7 +1438,7 @@ function renderAnnotationMoveList() {
     if (!moveListDiv) return;
     
     if (annotationLine.length === 0) {
-        moveListDiv.innerHTML = '<em class="text-muted">No moves/annotations yet</em>';
+        moveListDiv.innerHTML = '<em class="text-muted">No moves yet</em>';
         moveListDiv.style.display = 'block';
         return;
     }
@@ -1431,7 +1465,7 @@ function renderAnnotationMoveList() {
         }
     }
     if (sanMoves.length === 0) {
-        moveListDiv.innerHTML = '<em class="text-muted">No moves/annotations yet</em>';
+        moveListDiv.innerHTML = '<em class="text-muted">No moves yet</em>';
         moveListDiv.style.display = 'block';
         return;
     }

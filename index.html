@@ -128,15 +128,15 @@
                                 <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="text-center">
-                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                            <button type="button" class="btn btn-outline-secondary btn-xs me-1 ms-1"
                                                 id="startPositionBtn">
                                                 <i class="bi bi-arrow-clockwise"></i> Start
                                             </button>
-                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                            <button type="button" class="btn btn-outline-secondary btn-xs me-1 ms-1"
                                                 id="clearBoardBtn">
                                                 <i class="bi bi-trash"></i> Clear
                                             </button>
-                                            <button type="button" class="btn btn-outline-secondary me-1 ms-1"
+                                            <button type="button" class="btn btn-outline-secondary btn-xs me-1 ms-1"
                                                 id="flipBoardBtn">
                                                 <i class="bi bi-arrow-repeat"></i> Flip
                                             </button>
@@ -147,7 +147,7 @@
                                 <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="text-center">
-                                            <button type="button" class="btn btn-primary me-1 ms-1" id="doneSetupBtn">
+                                            <button type="button" class="btn btn-primary btn-xs me-1 ms-1" id="doneSetupBtn">
                                                 <i class="bi bi-rocket"></i> Load
                                             </button>    
                                         </div>
@@ -221,7 +221,7 @@
                                 <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="text-center">
-                                            <button type="button" class="btn btn-primary" id="loadFenBtn">
+                                            <button type="button" class="btn btn-primary btn-xs" id="loadFenBtn">
                                                 <i class="bi bi-rocket"></i> Load
                                             </button>    
                                         </div>
@@ -289,50 +289,72 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
                                     <strong>Analyze Position</strong>
+                                    <div class="ms-2">
+                                        <span class="badge bg-secondary" id="turnIndicator">White to move</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-footer bg-white">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h6 class="mb-0 me-3">Line:</h6>
-                                    <div class="btn-group me-2" role="group">
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationFirstBtn" title="First Position" disabled>
-                                            <i class="bi bi-skip-backward"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationPrevBtn" title="Previous Position" disabled>
-                                            <i class="bi bi-chevron-left"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationNextBtn" title="Next Position" disabled>
-                                            <i class="bi bi-chevron-right"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationLastBtn" title="Last Position" disabled>
-                                            <i class="bi bi-skip-forward"></i>
-                                        </button>
-                                    </div>
-                                    <div class="btn-group me-2 float-right" role="group">
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="saveLineBtn" title="Save and Reset Current Line">
-                                            <i class="bi bi-save"></i> Save and Reset
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="clearAnnotationsBtn" title="Reset All Annotations">
-                                            <i class="bi bi-eraser"></i> Reset
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <h6 class="mb-0 me-2">Moves:</h6>
-                                    <div class="me-2">
-                                        <span class="badge bg-secondary" id="turnIndicator">White to move</span>
-                                    </div>
-                                    <div class="input-group input-group-xs me-2" id="manualMoveInput">
-                                        <input type="text" style="width: 75px;" class="form-control" id="moveInputField" placeholder="e.g., e4">
-                                        <button class="btn btn-outline-secondary btn-xs" type="button" id="goMoveBtn">Type Move</button>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-secondary btn-xs me-2" id="voiceAnnotateBtn" title="Speak to Annotate">
-                                        <i class="bi bi-mic"></i> Speak Move
-                                    </button>
-                                    <span id="voiceAnnotateStatus" style="font-size:0.9em;"></span>
-                                </div>
-                                <div class="p-sm">
-                                    <div id="annotationMoveList" class="annotation-move-list" style="display:none;"></div>
+                                <div class="table-responsive">
+                                    <table class="table table-xs table-borderless mb-0" style="width: 100%;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 50px;" class="text-right">
+                                                    <h6 class="mb-0">Move</h6>
+                                                </td>
+                                                <td>
+                                                    <div class="display-inline-block">
+                                                        <button type="button" class="btn btn-outline-secondary btn-xs" id="voiceAnnotateBtn" title="Speak to Annotate"><i class="bi bi-mic"></i>&nbsp;Speak</button>
+                                                        &nbsp;<span id="voiceAnnotateStatus"></span>    
+                                                    </div>
+                                                    <div class="display-inline-block">
+                                                        <div class="input-group input-group-xs me-2">
+                                                            <input type="text" class="form-control" id="moveInputField" placeholder="e.g., e4">
+                                                            <button class="btn btn-outline-secondary" type="button" id="goMoveBtn"><i class="bi bi-keyboard"></i>&nbsp;Type</button>
+                                                        </div>    
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 50px;" class="text-right">
+                                                </td>
+                                                <td>
+                                                    <div style="max-width: 300px; white-space: nowrap; overflow: auto;" id="annotationMoveList" style="display:none;"></div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 50px;" class="text-right">
+                                                    <h6 class="mb-0">Line</h6>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="btn-group me-2" role="group">
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationFirstBtn" title="First Position" disabled>
+                                                                <i class="bi bi-skip-backward"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationPrevBtn" title="Previous Position" disabled>
+                                                                <i class="bi bi-chevron-left"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationNextBtn" title="Next Position" disabled>
+                                                                <i class="bi bi-chevron-right"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="annotationLastBtn" title="Last Position" disabled>
+                                                                <i class="bi bi-skip-forward"></i>
+                                                            </button>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="saveLineBtn" title="Save and Reset Current Line">
+                                                                <i class="bi bi-save"></i>&nbsp;Save&nbsp;+&nbsp;Reset
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-xs" id="clearAnnotationsBtn" title="Reset All Annotations">
+                                                                <i class="bi bi-eraser"></i>&nbsp;Reset
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>    
                                 </div>
                             </div>
                             <div class="card-body">
@@ -350,7 +372,6 @@
                                                         <div class="toolbar-group-title">Arrow</div>
                                                         <div class="toolbar-controls">
                                                             <div class="toolbar-control">
-                                                                <!-- <label class="toolbar-control-label">Color</label> -->
                                                                 <input type="color" class="toolbar-color-picker" id="arrowColor" value="#ffeb3b" title="Arrow Color">
                                                             </div>
                                                             <div class="toolbar-control">
@@ -360,7 +381,7 @@
                                                             <div class="toolbar-control">
                                                                 <label class="toolbar-control-label">Opac</label>
                                                                 <input type="range" class="toolbar-range-input" id="arrowOpacity" value="100" min="10" max="100" title="Arrow Opacity">
-                                                                <span class="toolbar-range-value" id="arrowOpacityValue">100%</span>
+                                                                <!-- <span class="toolbar-range-value" id="arrowOpacityValue">100%</span> -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -370,7 +391,6 @@
                                                         <div class="toolbar-group-title">Circle</div>
                                                         <div class="toolbar-controls">
                                                             <div class="toolbar-control">
-                                                                <!-- <label class="toolbar-control-label">Color</label> -->
                                                                 <input type="color" class="toolbar-color-picker" id="circleColor" value="#ffeb3b" title="Circle Color">
                                                             </div>
                                                             <div class="toolbar-control" style="display: none;">
@@ -380,7 +400,7 @@
                                                             <div class="toolbar-control">
                                                                 <label class="toolbar-control-label">Opac</label>
                                                                 <input type="range" class="toolbar-range-input" id="circleOpacity" value="100" min="10" max="100" title="Circle Opacity">
-                                                                <span class="toolbar-range-value" id="circleOpacityValue">100%</span>
+                                                                <!-- <span class="toolbar-range-value" id="circleOpacityValue">100%</span> -->
                                                             </div>
                                                         </div>
                                                     </div>
