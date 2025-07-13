@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize manual move input
     initializeManualMoveInput();
+    
+    // Clean up voice recognition when page is unloaded
+    window.addEventListener('beforeunload', cleanupVoiceRecognition);
 });
 
 /**
@@ -827,9 +830,6 @@ function loadSelectedGame(game, type) {
         currentMoveIndex = 0;
         chess = new Chess();
         basePosition = chess.fen(); // Set base position to actual FEN
-        console.log('=== loadSelectedGame ===');
-        console.log('Setting basePosition to:', basePosition);
-        console.log('Chess instance FEN:', chess.fen());
         annotationBoard.position('start');
         moveBoard.position('start');
         updateTurnIndicator();
@@ -893,8 +893,6 @@ function navigateToMove(moveIndex, type) {
     
     // Update base position to current position (so annotations reset to this position)
     basePosition = tempChess.fen();
-    console.log('=== navigateToMove ===');
-    console.log('Updated basePosition to:', basePosition);
     
     // Also update setup board to match
     if (setupBoard) {
@@ -1037,9 +1035,6 @@ function loadFENPosition() {
         // Update the chess instance and board
         chess = tempChess;
         basePosition = fen; // Set base position
-        console.log('=== loadFENPosition ===');
-        console.log('Setting basePosition to:', basePosition);
-        console.log('Chess instance FEN:', chess.fen());
         annotationBoard.position(fen);
         moveBoard.position(fen);
         updateTurnIndicator();
@@ -1124,7 +1119,7 @@ function showMessage(message, type = 'success') {
  */
 function updateArrowSettings() {
     if (!overlay) {
-        console.log('Overlay not available for arrow settings update');
+        console.error('Overlay not available for arrow settings update');
         return;
     }
     
@@ -1148,7 +1143,7 @@ function updateArrowSettings() {
  */
 function updateCircleSettings() {
     if (!overlay) {
-        console.log('Overlay not available for circle settings update');
+        console.error('Overlay not available for circle settings update');
         return;
     }
     
@@ -1167,8 +1162,6 @@ function updateCircleSettings() {
  * Clear all annotations
  */
 function clearAllAnnotations() {
-    console.log('=== clearAllAnnotations called ===');
-    console.log('basePosition before clearing:', basePosition);
     
     if (overlay) {
         overlay.clearAll();
@@ -1181,21 +1174,15 @@ function clearAllAnnotations() {
     arrowsByMoveIndex = {};
     
     // Reset both boards to the base position
-    console.log('Setting moveBoard position to:', basePosition);
     if (moveBoard) moveBoard.position(basePosition);
-    console.log('Setting annotationBoard position to:', basePosition);
     if (annotationBoard) annotationBoard.position(basePosition);
     
     // Reset chess instance to base position
-    console.log('Resetting chess instance with basePosition:', basePosition);
     if (basePosition === 'start') {
         chess = new Chess();
-        console.log('Created new chess instance for start position');
     } else {
         chess.load(basePosition);
-        console.log('Loaded chess instance with FEN:', basePosition);
     }
-    console.log('Chess instance FEN after reset:', chess.fen());
     updateTurnIndicator();
     
     // Clear any move highlights
@@ -1563,6 +1550,21 @@ function completeAnnotationPromotion(promotionPiece) {
 let recognition = null;
 let isListening = false;
 
+/**
+ * Clean up voice recognition to ensure microphone is released
+ */
+function cleanupVoiceRecognition() {
+    if (isListening && recognition) {
+        isListening = false;
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error('Recognition already stopped during cleanup');
+        }
+        recognition = null;
+    }
+}
+
 function startVoiceAnnotation() {
     // Check for speech recognition support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -1571,6 +1573,33 @@ function startVoiceAnnotation() {
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    const status = document.getElementById('voiceAnnotateStatus');
+    const voiceBtn = document.getElementById('voiceAnnotateBtn');
+    
+    if (isListening) {
+        // Stop listening - set flag first to prevent restart
+        isListening = false;
+        
+        // Stop the recognition
+        if (recognition) {
+            try {
+                recognition.stop();
+            } catch (e) {
+                console.error('Recognition already stopped');
+            }
+        }
+        
+        // Clear the recognition instance
+        recognition = null;
+        
+        // Update UI
+        status.textContent = '';
+        voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
+        voiceBtn.classList.remove('btn-danger');
+        voiceBtn.classList.add('btn-outline-secondary');
+        return;
+    }
     
     // Create new recognition instance each time for better Safari compatibility
     recognition = new SpeechRecognition();
@@ -1581,20 +1610,6 @@ function startVoiceAnnotation() {
     recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
     recognition.lang = 'en-US';
     
-    const status = document.getElementById('voiceAnnotateStatus');
-    const voiceBtn = document.getElementById('voiceAnnotateBtn');
-    
-    if (isListening) {
-        // Stop listening
-        recognition.stop();
-        isListening = false;
-        status.textContent = '';
-        voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
-        voiceBtn.classList.remove('btn-danger');
-        voiceBtn.classList.add('btn-outline-secondary');
-        return;
-    }
-    
     // Start listening
     isListening = true;
     status.textContent = 'Listening... (click again to stop)';
@@ -1602,16 +1617,16 @@ function startVoiceAnnotation() {
     voiceBtn.classList.remove('btn-outline-secondary');
     voiceBtn.classList.add('btn-danger');
     
-    recognition.start();
-    
     recognition.onresult = function(event) {
+        // Only process if still listening
+        if (!isListening) return;
+        
         const results = event.results;
         const lastResult = results[results.length - 1];
         
         if (lastResult.isFinal) {
             let transcript = lastResult[0].transcript.trim().toLowerCase();
             status.textContent = `Heard: "${transcript}"`;
-            console.log('Voice input:', transcript);
             processSpokenMove(transcript);
         }
     };
@@ -1633,21 +1648,36 @@ function startVoiceAnnotation() {
         
         // Reset button state
         isListening = false;
+        recognition = null;
         voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
         voiceBtn.classList.remove('btn-danger');
         voiceBtn.classList.add('btn-outline-secondary');
     };
     
-    recognition.onend = function() {
-        console.log('Speech recognition ended');
-        if (isListening) {
+    recognition.onend = function() {        
+        // Only restart if we're still supposed to be listening AND the recognition instance still exists
+        if (isListening && recognition) {
             // Restart if we're still supposed to be listening (Safari sometimes ends prematurely)
             setTimeout(() => {
-                if (isListening) {
-                    recognition.start();
+                if (isListening && recognition) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error('Failed to restart recognition:', e);
+                        // If restart fails, clean up
+                        isListening = false;
+                        recognition = null;
+                        status.textContent = '';
+                        voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
+                        voiceBtn.classList.remove('btn-danger');
+                        voiceBtn.classList.add('btn-outline-secondary');
+                    }
                 }
             }, 100);
         } else {
+            // Clean up if we're not supposed to be listening
+            isListening = false;
+            recognition = null;
             status.textContent = '';
             voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
             voiceBtn.classList.remove('btn-danger');
@@ -1656,9 +1686,21 @@ function startVoiceAnnotation() {
     };
     
     recognition.onstart = function() {
-        console.log('Speech recognition started');
         status.textContent = 'Listening... (click again to stop)';
     };
+    
+    // Start the recognition
+    try {
+        recognition.start();
+    } catch (e) {
+        console.error('Failed to start recognition:', e);
+        isListening = false;
+        recognition = null;
+        status.textContent = 'Failed to start voice recognition';
+        voiceBtn.innerHTML = '<i class="bi bi-mic"></i> Speak';
+        voiceBtn.classList.remove('btn-danger');
+        voiceBtn.classList.add('btn-outline-secondary');
+    }
 }
 
 function processSpokenMove(transcript) {
@@ -1720,8 +1762,6 @@ function spokenToSan(transcript) {
     // Clean up extra spaces
     transcript = transcript.replace(/\s+/g, ' ').trim();
     
-    console.log('Processed transcript:', transcript);
-    
     // Try to match SAN patterns
     let sanPattern = /^(O-O(-O)?|[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](=[NBRQ])?)$/i;
     if (sanPattern.test(transcript)) return transcript.toUpperCase();
@@ -1764,8 +1804,6 @@ function spokenToSan(transcript) {
     if (match) {
         return match[1];
     }
-    
-    console.log('No pattern matched for:', transcript);
     return null;
 }
 
@@ -1776,7 +1814,6 @@ function executeManualMove(e) {
     const move = moveInputField.value.trim();
     
     if (move) {
-        console.log('Manual move input:', move);
         processSpokenMove(move.toLowerCase());
         moveInputField.value = ''; // Clear the input after executing
     } else {
@@ -1834,9 +1871,6 @@ function startNewAnnotationLine() {
 }
 
 function saveCurrentAnnotationLine() {
-    console.log('=== saveCurrentAnnotationLine called ===');
-    console.log('annotationLine length:', annotationLine.length);
-    console.log('basePosition before saving:', basePosition);
     
     if (annotationLine.length === 0) {
         showMessage('Nothing to save. Draw some arrows first.', 'error');
@@ -1847,7 +1881,6 @@ function saveCurrentAnnotationLine() {
     
     // Use the global basePosition (the original position when loaded)
     let baseFen = basePosition;
-    console.log('Saving with baseFen:', baseFen);
     
     savedAnnotationLines.push({
         line: lineCopy,
@@ -1856,7 +1889,6 @@ function saveCurrentAnnotationLine() {
     renderSavedAnnotationLines();
     showMessage('Annotation line saved!', 'success');
     // Reset to the original loaded position
-    console.log('About to call clearAllAnnotations...');
     clearAllAnnotations();
 }
 
