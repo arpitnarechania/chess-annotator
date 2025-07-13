@@ -468,6 +468,11 @@ body > img[data-piece] {
     font-weight: 500;
 }
 
+#annotationMoveList{
+    max-width: 250px; 
+    white-space: nowrap;
+    overflow-x: auto;
+}
 
 .btn-xs {
     padding: 0.0625rem 0.3125rem;
