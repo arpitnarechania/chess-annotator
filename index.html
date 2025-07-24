@@ -365,7 +365,7 @@
                                                 <span class="fw-bold">Annotation Board - Draw Arrows</span>
                                             </div>
                                             <!-- Drawing Workspace Container -->
-                                            <div class="drawing-workspace">
+                                            <div class="drawing-workspace mb-3">
                                                 <div class="drawing-toolbar" id="drawingToolbar">
                                                     <!-- Arrow Properties -->
                                                     <div class="toolbar-group" id="arrowProperties">
@@ -413,6 +413,11 @@
                                                     <div class="annotation-board"></div>
                                                 </div>
                                             </div>
+                                            <!-- Recording Buttons -->
+                                            <div class="text-center mb-3">
+                                                <button type="button" class="btn btn-outline-success btn-xs me-1" id="startAnnotationGifBtn" title="Start Recording Annotation Board GIF"><i class="bi bi-record-circle"></i> Record Annotation Board</button>
+                                                <button type="button" class="btn btn-outline-danger btn-xs me-1" id="stopAnnotationGifBtn" title="Stop Recording Annotation Board GIF" style="display:none;"><i class="bi bi-stop-circle"></i> Stop</button>
+                                            </div>
                                         </div>
                                         <div class="col-md-6" id="moveBoardColumn">
                                             <div class="d-flex flex-column h-100">
@@ -422,6 +427,11 @@
                                                 <!-- Move Board -->
                                                 <div class="move-board-container mb-3">
                                                     <div class="move-board mb-3"></div>
+                                                </div>
+                                                <!-- Recording Buttons -->
+                                                <div class="text-center mb-3">
+                                                    <button type="button" class="btn btn-outline-success btn-xs me-1" id="startMoveGifBtn" title="Start Recording Move Board GIF"><i class="bi bi-record-circle"></i> Record Move Board</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-xs me-1" id="stopMoveGifBtn" title="Stop Recording Move Board GIF" style="display:none;"><i class="bi bi-stop-circle"></i> Stop</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -540,6 +550,11 @@
     <script src="libs/chess.min.js"></script>
     <script src="js/chessboard.js"></script>
     <script src="js/chessboard-arrows.js"></script>
+    <!-- GIF.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+    <!-- html2canvas CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="js/script.js"></script>
 </body>
 

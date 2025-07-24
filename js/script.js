@@ -20,6 +20,16 @@ let annotationLineIndex = 0;
 let pendingAnnotationPromotion = null;
 let arrowsByMoveIndex = {}; // { [moveIndex]: [ { from, to, color } ] }
 let basePosition = 'start'; // Track the original position when loaded
+let drawingResolutionScale = 3;
+
+// GIF Recording Params
+let annotationGifRecorder = null;
+let annotationGifFrames = [];
+let annotationGifInterval = null;
+let moveGifRecorder = null;
+let moveGifFrames = [];
+let moveGifInterval = null;
+const GIF_FRAME_INTERVAL = 100; // ms (10 fps)
 
 /**
  * Main application initialization
@@ -58,6 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Clean up voice recognition when page is unloaded
     window.addEventListener('beforeunload', cleanupVoiceRecognition);
+    
+    // GIF recording button events
+    document.getElementById('startAnnotationGifBtn').addEventListener('click', startAnnotationGifRecording);
+    document.getElementById('stopAnnotationGifBtn').addEventListener('click', stopAnnotationGifRecording);
+    document.getElementById('startMoveGifBtn').addEventListener('click', startMoveGifRecording);
+    document.getElementById('stopMoveGifBtn').addEventListener('click', stopMoveGifRecording);
 });
 
 /**
@@ -143,7 +159,7 @@ function initializeAnnotationBoard() {
         annotationBoardContainer, 
         annotationBoardPrimaryCanvas, 
         annotationBoardDrawingCanvas,
-        3, // RES_FACTOR
+        drawingResolutionScale, // RES_FACTOR
         '#007bff', // API_COLOUR
         '#fff200', // USER_COLOUR
         function(fromSquare, toSquare, arrowSettings) {
@@ -2194,5 +2210,149 @@ function initializeDrawingToolbar() {
         updateArrowSettings();
         updateCircleSettings();
     }, 100);
+}
+
+async function getAnnotationBoardCompositeCanvas() {
+    const container = document.querySelector('.annotation-board-container');
+    const boardDiv = container.querySelector('.annotation-board');
+    const primary = container.querySelector('.annotation-board-primary-canvas');
+    const drawing = container.querySelector('.annotation-board-drawing-canvas');
+    const width = primary.width;
+    const height = primary.height;
+
+    // Save original inline styles
+    const origWidth = boardDiv.style.width;
+    const origHeight = boardDiv.style.height;
+    // Temporarily force the boardDiv to match the canvas size in CSS
+    boardDiv.style.width = width + 'px';
+    boardDiv.style.height = height + 'px';
+
+    // Use html2canvas to capture the board div as a canvas at the correct size
+    const boardCanvas = await window.html2canvas(boardDiv, {
+        backgroundColor: null,
+        width: width / drawingResolutionScale,
+        height: height / drawingResolutionScale,
+        scale: 1,
+        logging: false
+    });
+
+    // Restore original styles
+    boardDiv.style.width = origWidth;
+    boardDiv.style.height = origHeight;
+
+    const composite = document.createElement('canvas');
+    composite.width = width / drawingResolutionScale;
+    composite.height = height / drawingResolutionScale;
+    const ctx = composite.getContext('2d');
+    // Draw chessboard snapshot to fill the canvas
+    ctx.drawImage(boardCanvas, 0, 0, width / drawingResolutionScale, height / drawingResolutionScale);
+    // Draw overlays
+    ctx.drawImage(primary, 0, 0, width / drawingResolutionScale, height / drawingResolutionScale);
+    ctx.drawImage(drawing, 0, 0, width / drawingResolutionScale, height / drawingResolutionScale);
+    return composite;
+}
+
+function getMoveBoardCanvas() {
+    // Get the move board canvas (chessboard only)
+    const moveBoardDiv = document.querySelector('.move-board');
+    return moveBoardDiv;
+}
+
+function startAnnotationGifRecording() {
+    if (annotationGifRecorder) return;
+    annotationGifRecorder = new GIF({
+        workers: 2,
+        quality: 1,
+        workerScript: 'libs/gif.worker.js',
+        width: document.querySelector('.annotation-board-primary-canvas').width / drawingResolutionScale,
+        height: document.querySelector('.annotation-board-primary-canvas').height / drawingResolutionScale
+    });
+    annotationGifFrames = [];
+    document.getElementById('startAnnotationGifBtn').style.display = 'none';
+    document.getElementById('stopAnnotationGifBtn').style.display = '';
+    annotationGifInterval = setInterval(async () => {
+        const composite = await getAnnotationBoardCompositeCanvas();
+        if(annotationGifRecorder){
+            annotationGifRecorder.addFrame(composite, {copy: true, delay: GIF_FRAME_INTERVAL});
+        }
+    }, GIF_FRAME_INTERVAL);
+    showMessage('Recording annotation board GIF...', 'success');
+}
+
+function stopAnnotationGifRecording() {
+    if (!annotationGifRecorder) return;
+    clearInterval(annotationGifInterval);
+    annotationGifInterval = null;
+    document.getElementById('startAnnotationGifBtn').style.display = '';
+    document.getElementById('stopAnnotationGifBtn').style.display = 'none';
+    showMessage('Processing annotation board GIF...', 'success');
+    annotationGifRecorder.on('finished', function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'annotation-board.gif';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+            a.remove();
+        }, 100);
+        showMessage('Annotation board GIF downloaded!', 'success');
+    });
+    annotationGifRecorder.render();
+    annotationGifRecorder = null;
+}
+
+function startMoveGifRecording() {
+    if (moveGifRecorder) return;
+    // Try to get the move board as a canvas (if not, fallback to html2canvas)
+    const moveBoardDiv = document.querySelector('.move-board');
+    const width = moveBoardDiv.offsetWidth;
+    const height = moveBoardDiv.offsetHeight;
+    moveGifRecorder = new GIF({
+        workers: 2,
+        quality: 1,
+        workerScript: 'libs/gif.worker.js',
+        width: width,
+        height: height
+    });
+    moveGifFrames = [];
+    document.getElementById('startMoveGifBtn').style.display = 'none';
+    document.getElementById('stopMoveGifBtn').style.display = '';
+    moveGifInterval = setInterval(() => {
+        // Render the move board div to a canvas using html2canvas
+        if (window.html2canvas) {
+            window.html2canvas(moveBoardDiv, {backgroundColor: null, scale: 1, logging: false}).then(canvas => {
+                if(moveGifRecorder){
+                    moveGifRecorder.addFrame(canvas, {copy: true, delay: GIF_FRAME_INTERVAL});
+                }
+            });
+        }
+    }, GIF_FRAME_INTERVAL);
+    showMessage('Recording move board GIF...', 'success');
+}
+
+function stopMoveGifRecording() {
+    if (!moveGifRecorder) return;
+    clearInterval(moveGifInterval);
+    moveGifInterval = null;
+    document.getElementById('startMoveGifBtn').style.display = '';
+    document.getElementById('stopMoveGifBtn').style.display = 'none';
+    showMessage('Processing move board GIF...', 'success');
+    moveGifRecorder.on('finished', function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'move-board.gif';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+            a.remove();
+        }, 100);
+        showMessage('Move board GIF downloaded!', 'success');
+    });
+    moveGifRecorder.render();
+    moveGifRecorder = null;
 }
 
